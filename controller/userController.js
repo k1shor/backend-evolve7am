@@ -77,3 +77,51 @@ exports.verifyEmail = async (req, res) => {
 
     res.send({message: "User verified successfully"})
 }
+
+// forget password
+exports.forgetPassword = async (req, res) => {
+    // check if email is registered or not
+    let user = await User.findOne({email: req.body.email})
+    if(!user){
+        return res.status(400).json({error:"Email not registered"})
+    }
+    // generate token
+    let token = await Token.create({
+        token: crypto.randomBytes(16).toString('hex'),
+        user: user._id
+    })
+    if(!token){
+        return res.status(400).json({error:"Something went wrong"})
+    }
+    // send in email
+    let URL = `http://localhost:5000/resetpassword/${token.token}`
+    sendEmail({
+        from: "noreply@something.com",
+        to: req.body.email,
+        subject:"Reset Password",
+        text: `Click on the link or copy paste link in browser to reset password. ${URL}`,
+        html: `<a href='${URL}'><button>Reset Password</button></a>`
+    })
+    res.send({message:"Password reset link has been sent to your email."})
+}
+
+// reset password
+exports.resetpassword = async (req,res) => {
+    let token = await Token.findOne({token: req.params.token})
+    if(!token){
+        return res.status(400).json({error:"Invalid token or token may have expired"})
+    }
+    let user = await User.findById(token.user)
+    if(!user){
+        return res.status(400).json({error:"User not found"})
+    }
+
+    let salt = await bcrypt.genSalt(saltRounds)
+    user.password  = await bcrypt.hash(req.body.password, salt)
+     
+    user = await user.save()
+    if(!user){
+        return res.status(400).json({error:"Something went wrong"})
+    }
+    res.send({message:"Password reset successfully"})
+}
