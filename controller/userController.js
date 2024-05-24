@@ -4,7 +4,8 @@ const bcrypt = require('bcrypt')
 const crypto = require('crypto')
 const sendEmail = require('../utils/emailSender')
 const saltRounds = 10
-
+const jwt = require('jsonwebtoken')
+const {expressjwt} = require('express-jwt')
 
 
 // register
@@ -124,4 +125,74 @@ exports.resetpassword = async (req,res) => {
         return res.status(400).json({error:"Something went wrong"})
     }
     res.send({message:"Password reset successfully"})
+}
+
+// user update 
+exports.updateUser = async (req, res) => {
+    let userToUpdate = await User.findByIdAndUpdate(req.params.id, {
+        username: req.body.username,
+        role: req.body.role,
+        isVerified: req.body.isVerified
+    },{new:true})
+    if(!userToUpdate){
+        return res.status(400).json({error:"Something went wrong"})
+    }
+    res.send(userToUpdate)
+}
+
+// login
+exports.login = async (req, res) => {
+    let {email, password} = req.body
+    // check email if registered or not
+    let user = await User.findOne({email})
+    if(!user){
+        return res.status(400).json({error:"User not registered."})
+    }
+    // check password if match or not
+    let validLogin = await bcrypt.compare(password, user.password)
+    if(!validLogin){
+        return res.status(400).json({error:"Email and password do not match"})
+    }
+    // check if user is verified or not
+    if(!user.isVerified){
+        return res.status(400).json({error:"User not verified. Please verify"})
+    }
+
+    let {_id, username, role} = user
+    // generate login token using jwt
+    let token = await jwt.sign({_id, username, role, email}, process.env.JWT_SECRET)
+    // send token to frontend
+    res.cookie('MyCookie', token, {maxAge: 86400} )
+    res.send({token, user: {_id, email, username, role}})
+}
+
+exports.requireLogin = async (req, res, next) => {
+    expressjwt({
+        algorithms: ['HS256'],
+        secret: process.env.JWT_SECRET
+    })(req, res, (error)=>{
+        if(error){
+            return res.status(401).json({error:"You must login to access this resource"})
+        }
+        else{
+            next()
+        }
+    })
+}
+// check admin
+exports.requireAdmin = async (req, res, next) => {
+    expressjwt({
+        algorithms: ['HS256'],
+        secret: process.env.JWT_SECRET
+    })(req, res, (error)=>{
+        if(error){
+            return res.status(401).json({error:"You must login to access this resource"})
+        }
+        else if(req.auth.role != 1 ){
+            return res.status(401).json({error:"You must be admin"})
+        }
+        else{
+            next()
+        }
+    })
 }
