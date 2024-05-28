@@ -14,6 +14,7 @@ app.use(express.json())
 const CategoryRoute = require('./routes/categoryRoute')
 const ProductRoute = require('./routes/productRoute')
 const UserRoute = require('./routes/userRoute')
+const OrderRoute = require('./routes/orderRoute')
 
 
 
@@ -23,6 +24,7 @@ const UserRoute = require('./routes/userRoute')
 app.use(CategoryRoute)
 app.use(ProductRoute)
 app.use(UserRoute)
+app.use(OrderRoute)
 
 
 

@@ -2,13 +2,16 @@ const Product = require('../models/productModel')
 
 // Product add
 exports.addProduct = async (req, res) => {
+    if(!req.file){
+        return res.status(400).json({error:"File is required"})
+    }
     let newProduct = await Product.create({
         title: req.body.title,
         price: req.body.price,
         description: req.body.description,
         count_in_stock: req.body.count_in_stock,
         category: req.body.category,
-        image: req.file.path
+        image: req.file?.path
     })
     if (!newProduct) {
         return res.status(400).json({ error: "Something went wrong" })

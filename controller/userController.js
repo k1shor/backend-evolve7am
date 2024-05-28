@@ -196,3 +196,12 @@ exports.requireAdmin = async (req, res, next) => {
         }
     })
 }
+
+
+exports.getAllUsers = async (req, res) => {
+    let users = await User.find()
+    if(!users){
+        return res.status(400).json({error:"Something went wrong"})
+    }
+    res.send(users)
+}
