@@ -8,8 +8,8 @@ const { category_rules, validation_method } = require('../validation')
 router.post('/addcategory', category_rules, validation_method, postCategory)
 router.get('/getallcategories', getAllCategories)
 router.get('/getcategorydetails/:id', getCategoryDetails)
-router.put('/updatecategory/:id', requireAdmin, updateCategory)
-router.delete('/deletecategory/:id', requireAdmin, deleteCategory)
+router.put('/updatecategory/:id', updateCategory)
+router.delete('/deletecategory/:id',  deleteCategory)
 
 
 module.exports = router

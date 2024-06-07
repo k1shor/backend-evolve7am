@@ -1,12 +1,16 @@
 const express = require('express')
 require('dotenv').config()
 require('./database/connection')
+const cors = require('cors')
+const morgan = require('morgan')
 
 const app = express()
 const port = process.env.PORT
 
 // middleware
 app.use(express.json())
+app.use(cors())
+app.use(morgan('dev'))
 
 
 // Routes Import
@@ -21,11 +25,13 @@ const OrderRoute = require('./routes/orderRoute')
 
 // USING Routes
 // app.use(TestRoute)
-app.use(CategoryRoute)
-app.use(ProductRoute)
-app.use(UserRoute)
-app.use(OrderRoute)
+app.use('/api',CategoryRoute)
+app.use('/api',ProductRoute)
+app.use('/api',UserRoute)
+app.use('/api',OrderRoute)
 
+
+app.use('/public/uploads',express.static('public/uploads'))
 
 
 app.listen(port, () => {
