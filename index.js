@@ -31,7 +31,7 @@ app.use('/api',UserRoute)
 app.use('/api',OrderRoute)
 
 
-app.use('/public/uploads',express.static('public/uploads'))
+app.use('/api/public/uploads',express.static('public/uploads'))
 
 
 app.listen(port, () => {

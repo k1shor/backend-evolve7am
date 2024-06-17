@@ -10,6 +10,7 @@ router.post('/resetpassword/:token', resetpassword)
 router.put('/updateuser/:id', updateUser)
 router.post("/login", login)
 router.get("/userlist",getAllUsers)
+
 router.get('/logout', logOut)
 
 module.exports = router

@@ -1,4 +1,5 @@
 const Product = require('../models/productModel')
+const fs = require('fs')
 
 // Product add
 exports.addProduct = async (req, res) => {
@@ -53,6 +54,11 @@ exports.productDetails = async (req, res) => {
 
 // update product
 exports.updateProduct = async (req, res) => {
+    if(req.file){
+        fs.unlink(req.body.imageUrl, error=>{
+            console.log(error)
+        })
+    }
     let product = await Product.findByIdAndUpdate(req.params.id, {
         title: req.body.title,
         price: req.body.price,
@@ -60,7 +66,7 @@ exports.updateProduct = async (req, res) => {
         count_in_stock: req.body.count_in_stock,
         rating: req.body.rating,
         category: req.body.category,
-        image: req.file.path
+        image: req.file?.path
     }, { new: true })
     if (!product) {
         return res.status(400).json({ error: "Something went wrong" })
@@ -79,4 +85,30 @@ exports.deleteProduct = (req, res) => {
         .catch(error => {
             return res.status(400).json({ error: error.message })
         })
+}
+
+exports.getFilteredProducts = async (req, res) => {
+    let filter = {}
+    for(var key in req.body){
+        if(req.body[key].length != 0){
+            {
+                if(key === 'category'){
+                    filter['category'] = req.body['category']
+                }
+                else{
+                    filter['price'] = {
+                        '$gte': req.body['price'][0],
+                        '$lte': req.body['price'][1]
+                    }
+                }
+            }
+        }
+    }
+    console.log(filter)
+    let products = await Product.find(filter)
+    if(!products){
+        return res.status(400).json({error:"Something went wrong"})
+    }
+    res.send(products)
+
 }
