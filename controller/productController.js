@@ -3,8 +3,8 @@ const fs = require('fs')
 
 // Product add
 exports.addProduct = async (req, res) => {
-    if(!req.file){
-        return res.status(400).json({error:"File is required"})
+    if (!req.file) {
+        return res.status(400).json({ error: "File is required" })
     }
     let newProduct = await Product.create({
         title: req.body.title,
@@ -54,8 +54,8 @@ exports.productDetails = async (req, res) => {
 
 // update product
 exports.updateProduct = async (req, res) => {
-    if(req.file){
-        fs.unlink(req.body.imageUrl, error=>{
+    if (req.file) {
+        fs.unlink(req.body.imageUrl, error => {
             console.log(error)
         })
     }
@@ -89,13 +89,13 @@ exports.deleteProduct = (req, res) => {
 
 exports.getFilteredProducts = async (req, res) => {
     let filter = {}
-    for(var key in req.body){
-        if(req.body[key].length != 0){
+    for (var key in req.body) {
+        if (req.body[key].length != 0) {
             {
-                if(key === 'category'){
+                if (key === 'category') {
                     filter['category'] = req.body['category']
                 }
-                else{
+                else {
                     filter['price'] = {
                         '$gte': req.body['price'][0],
                         '$lte': req.body['price'][1]
@@ -106,9 +106,21 @@ exports.getFilteredProducts = async (req, res) => {
     }
     console.log(filter)
     let products = await Product.find(filter)
-    if(!products){
-        return res.status(400).json({error:"Something went wrong"})
+    if (!products) {
+        return res.status(400).json({ error: "Something went wrong" })
     }
     res.send(products)
 
+}
+
+exports.getRelatedProducts = async (req, res) => {
+    let product = await Product.findById(req.params.id)
+    let products = await Product.find({
+        category: product.category,
+        _id: { $ne: product._id }
+    })
+    if (!products) {
+        return res.status(400).json({ error: "Something went wrong" })
+    }
+    res.send(products)
 }
